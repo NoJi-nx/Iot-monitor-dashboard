@@ -6,4 +6,6 @@ build/
 .env.*
 !.env.example
 
+#docker credentials
+docker/.env
 
