@@ -20,8 +20,11 @@ export function createTelemetryGen() {
     let pressure = 1013.1;
 
     return function genTelemetry(deviceID) {
-        //change the measurements / placeholder data
-
+        //validate deviceID
+        if (typeof deviceID !== "string" || deviceID.trim() === "") {
+            throw new Error("deviceID must be a non-empty string");
+        }
+    //change the measurements / placeholder data
     temperature = clamp(
         temperature + randomChange(0.15),
         20,
