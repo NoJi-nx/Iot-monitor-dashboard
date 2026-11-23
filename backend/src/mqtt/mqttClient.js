@@ -1,5 +1,7 @@
 import mqtt from "mqtt";
 
+import {validateTelemetry} from "../validators/telemetryValidator.js";
+
 export function startMQTTSubscriber() {
   //read env config
   const brokerUrl = process.env.MQTT_URL;
@@ -59,6 +61,8 @@ export function startMQTTSubscriber() {
 
     const parts = topic.split("/");
 
+    //Validate MQTT topic structure
+
     if (
       parts.length !== 4 ||
       parts[0] !== "iot" ||
@@ -72,25 +76,25 @@ export function startMQTTSubscriber() {
     const deviceID = parts[2];
     const messageType = parts[3];
 
+    //handle telemetry messages
     if (messageType === "telemetry") {
-      console.log(
-        `[TELEMETRY] Device: ${deviceID}`
-      );
-      console.log(payload);
+        const result = validateTelemetry(payload, deviceID);
 
-    } else if (messageType === "status") {
-      console.log(
-        `[STATUS] Device: ${deviceID}`
-      );
-      console.log(payload);
+        //reject invalid telemetry
+        if (!result.valid) {
+            console.warn(`[TELEMETRY] Rejected invalid data from ${deviceID}`);
+        };
 
-    } else {
-      console.warn(
-        "[MQTT] Unknown message type:",
-        messageType
-      );
-    }
-  });
+        for (const error of result.errors) {
+            console.warn(`[VALIDATION] ${error}`);
+        }
+
+        return;
+
+  };
+  
+
+});
 
   //connection events
 
