@@ -61,7 +61,7 @@ export function startMQTTSubscriber() {
 
     const parts = topic.split("/");
 
-    //Validate MQTT topic structure
+    //validate MQTT topic structure
 
     if (
       parts.length !== 4 ||
@@ -83,18 +83,37 @@ export function startMQTTSubscriber() {
         //reject invalid telemetry
         if (!result.valid) {
             console.warn(`[TELEMETRY] Rejected invalid data from ${deviceID}`);
-        };
+  
 
         for (const error of result.errors) {
             console.warn(`[VALIDATION] ${error}`);
         }
 
         return;
-
-  };
+    }
   
+  
+  //accept valid telemetry
+  console.log(`[TELEMETRY] Accepted data from ${deviceID}`);
 
+  console.log(JSON.stringify(result.data, null, 2));
+
+  //here stores validated telemetry in PostgreSQL for later use
+  return;
+}
+
+//handle status messages
+ if (messageType === "status") {
+    console.log(`[STATUS] Device: ${deviceID}`);
+    console.log(payload);
+    return;
+  }
+
+  //handle unknown messages
+  console.warn("[MQTT] Unknown message type:", messageType);
 });
+
+
 
   //connection events
 
