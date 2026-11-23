@@ -1,52 +1,117 @@
 import mqtt from "mqtt";
 
-//create an MQTT client
-export function createMQTTClient(brokerUrl, clientID) {
-    const client = mqtt.connect(brokerUrl, {
-        clientID,
-        reconnectPeriod: 2000,
-        queueQoSZero: false
+//creating MQTT client
+export function createMQTTClient(
+  brokerUrl,
+  clientID,
+  deviceID,
+  statusTopic
+) {
+  //message to be sent when the client disconnects
+  const willPayload = JSON.stringify({
+    deviceID,
+    status: "OFFLINE"
+  });
 
-    });
-    //connect event
-    client.on("connect", () => {
-        console.log("Connected to MQTT broker");
-    });
-    //reconnect event
-    client.on("reconnect", () => {
-        console.log("Attempt to reconnecting MQTT broker...");
-    });
-    //offline event
-    client.on("offline", () => {
-        console.warn("MQTT client is offline");
-    });
-    //error event
-    client.on("error", (error) => {
-        console.error("MQTT error:", error);
-    });
-    
+  const client = mqtt.connect(brokerUrl, {
+    clientID,
+    reconnectPeriod: 2000,
+    queueQoSZero: false,
 
-    return client;
+    //last will & testament message
+    will: {
+      topic: statusTopic,
+      payload: willPayload,
+      qos: 1,
+      retain: true
+    }
+  });
+
+  //handle connection events
+
+  //connected
+  client.on("connect", () => {
+    console.log("[MQTT] Connected to broker.");
+  });
+
+  //reconnected
+  client.on("reconnect", () => {
+    console.log("[MQTT] Attempting reconnection...");
+  });
+
+  //offline
+  client.on("offline", () => {
+    console.warn("[MQTT] Client is offline.");
+  });
+
+  //error
+  client.on("error", (error) => {
+    console.error("[MQTT] Error:", error.message);
+  });
+
+  return client;
 }
 
-//publish telemetry data
+//publish sensor telemetry
 export function publishTelemetry(client, topic, telemetry) {
-    if (!client.connected) {
+  if (!client.connected) {
+    return;
+  }
+
+  const payload = JSON.stringify(telemetry);
+
+  client.publish(
+    topic,
+    payload,
+    { qos: 0, retain: false },
+    (error) => {
+      if (error) {
+        console.error(
+          "[MQTT] Telemetry publish error:",
+          error.message
+        );
         return;
+      }
+
+      console.log(`[TELEMETRY] Published to ${topic}`);
+      console.log(payload);
     }
+  );
+}
 
-    const payload = JSON.stringify(telemetry);
+//publish device status
+export function publishStatus(
+  client,
+  topic,
+  deviceID,
+  status,
+  callback = () => {}
+) {
+  if (!client.connected) {
+    callback(new Error("MQTT client is not connected"));
+    return;
+  }
 
-    
-    client.publish(topic, payload, { qos: 0, retain: false },
-        (error) => {
-            if (error) {
-                console.error("MQTT publish error:", error.message);
-                return;
-            }
+  const payload = JSON.stringify({
+    deviceID,
+    status
+  });
 
-            console.log(`Published to ${topic}:`);
-            console.log(payload);
-        }
-    );
+  client.publish(
+    topic,
+    payload,
+    { qos: 1, retain: true },
+    (error) => {
+      if (error) {
+        console.error(
+          "[MQTT] Status publish error:",
+          error.message
+        );
+      } else {
+        console.log(`[STATUS] Published ${status}`);
+      }
+
+      callback(error);
+    }
+  );
 }
