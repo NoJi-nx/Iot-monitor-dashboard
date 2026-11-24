@@ -9,6 +9,53 @@ The project is under active development
 
 The application is designed to recieve IoT telemetry through MQTT, process & store measurements in PostgreSQL and display information on a dashboard.
 
+### Architecture (placeholder)
+
+```
+{IoT Device Simulator}
+          │
+          │ JSON
+          V
+        MQTT
+          │
+          V
+{Mosquitto MQTT Broker}
+          │
+          V
+     {Backend}
+          │
+          ├── MQTT Subscriber
+          ├── Data Validation
+          ├── Device Management
+          ├── Alert Processing
+          ├── Logic
+          └── REST API
+          │
+          V
+ {PostgreSQL Database}
+          │
+          V
+     REST API
+          │
+          V
+ {Next.js / React}
+          │
+          V
+  Monitoring Dashboard
+Real-time updates:
+MQTT
+  │
+  V
+Backend
+  │
+  ├── Database
+  │
+  └── (WebSocket)?
+              │
+              V
+          Dashboard
+```
+
 ### Stack
 
 - Next.js
