@@ -1,4 +1,3 @@
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,7 +6,71 @@ datasource db {
   provider = "postgresql"
 }
 
+//states
+enum DeviceStatus {
+  UNKNOWN
+  ONLINE
+  OFFLINE
+}
+
+//alert severity levels
+enum AlertSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+//IoT devices
 model Device {
-  id       String @id @default(uuid())
-  deviceId String @unique
+  id          String       @id @default(uuid()) @db.Uuid
+  deviceId    String       @unique
+  name        String
+  description String?
+  type        String?
+  location    String?
+  status      DeviceStatus @default(UNKNOWN)
+
+  lastSeen  DateTime? @db.Timestamptz(3)
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime  @updatedAt @db.Timestamptz(3)
+
+  // One-to-many relationships
+  measurements Measurement[]
+  alerts       Alert[]
+}
+
+// sensor measurements
+model Measurement {
+  id String @id @default(uuid()) @db.Uuid
+
+  deviceRecordId String @db.Uuid
+  device         Device @relation(fields: [deviceRecordId], references: [id], onDelete: Restrict)
+
+  timestamp DateTime @db.Timestamptz(3)
+  metric    String
+  value     Float
+  unit      String
+
+  //prevent duplicates
+  @@unique([deviceRecordId, timestamp, metric])
+  //optimize metric queries
+  @@index([deviceRecordId, metric, timestamp])
+}
+
+//alerts associeted with devices
+model Alert {
+  id String @id @default(uuid()) @db.Uuid
+
+  deviceRecordId String @db.Uuid
+  device         Device @relation(fields: [deviceRecordId], references: [id], onDelete: Restrict)
+
+  type       String
+  severity   AlertSeverity @default(WARNING)
+  message    String
+  timestamp  DateTime      @default(now()) @db.Timestamptz(3)
+  resolved   Boolean       @default(false)
+  resolvedAt DateTime?     @db.Timestamptz(3)
+
+  @@index([deviceRecordId, timestamp])
+  @@index([resolved, severity])
 }
