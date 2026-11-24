@@ -64,18 +64,18 @@ Validated MQTT telemetry is stored using databbase transactions.
 Start PostgreSQL using Docker Compose:
 
 
-´´´cmd
+```cmd
 docker compose --env-file docker/.env -f docker/compose.yaml up -d
-´´´
+```
 
 Configuriation in backend/.env
 
 From the backend/ directory, apply Prisma migrations and generate the client
 
-´´´
+```
 npx prisma migrate dev
 npx prisma generate
-´´´
+```
 
 Verify database connectivity and retrieval
 
