@@ -8,7 +8,7 @@ import {
 } from "./mqttClient.js";
 
 //read env config
-const deviceID = process.env.DEVICE_ID;
+const deviceId = process.env.DEVICE_ID;
 
 const interval = Number(
   process.env.TELEMETRY_INTERVAL_MS
@@ -21,7 +21,7 @@ const topicPrefix = process.env.MQTT_TOPIC_PREFIX;
 //validate config
 
 //invalid device ID
-if (!deviceID || !/^[a-zA-Z0-9_-]+$/.test(deviceID)) {
+if (!deviceId || !/^[a-zA-Z0-9_-]+$/.test(deviceId)) {
   throw new Error("Invalid DEVICE_ID");
 }
 
@@ -37,10 +37,10 @@ if (!brokerUrl || !clientID || !topicPrefix) {
 
 //define Topcis
 const telemetryTopic =
-  `${topicPrefix}/${deviceID}/telemetry`;
+  `${topicPrefix}/${deviceId}/telemetry`;
 
 const statusTopic =
-  `${topicPrefix}/${deviceID}/status`;
+  `${topicPrefix}/${deviceId}/status`;
 
 //initiate generator
 const genTelemetry = createTelemetryGen();
@@ -49,7 +49,7 @@ const genTelemetry = createTelemetryGen();
 const client = createMQTTClient(
   brokerUrl,
   clientID,
-  deviceID,
+  deviceId,
   statusTopic
 );
 
@@ -61,7 +61,7 @@ function sendTelemetry() {
     return;
   }
 
-  const telemetry = genTelemetry(deviceID);
+  const telemetry = genTelemetry(deviceId);
 
   publishTelemetry(client, telemetryTopic, telemetry);
 }
@@ -76,7 +76,7 @@ client.on("connect", () => {
   publishStatus(
     client,
     statusTopic,
-    deviceID,
+    deviceId,
     "ONLINE",
     (error) => {
       if (!error && !shuttingDown) {
@@ -89,7 +89,7 @@ client.on("connect", () => {
 //publish periodically
 const timer = setInterval(sendTelemetry, interval);
 
-console.log(`Starting simulator: ${deviceID}`);
+console.log(`Starting simulator: ${deviceId}`);
 console.log(`Simulator PID: ${process.pid}`);
 console.log(`MQTT broker: ${brokerUrl}`);
 console.log(`Telemetry topic: ${telemetryTopic}`);
@@ -113,7 +113,7 @@ function shutdown() {
     publishStatus(
       client,
       statusTopic,
-      deviceID,
+      deviceId,
       "OFFLINE",
       () => {
         client.end(false, () => {

@@ -8,7 +8,7 @@ import {
 //create valid telemetry data for testing
 function createValidTelemetry(overrides = {}) {
     return{
-        deviceID: "sensor-001",
+        deviceId: "sensor-001",
         timestamp: "2026-11-23T15:30:00.000Z",
         metrics: {
             temperature: 22.6,
@@ -20,8 +20,8 @@ function createValidTelemetry(overrides = {}) {
 }
 
 //convert telemetry data to JSON for validation
-function validate(telemetry, topicDeviceID = "sensor-001") {
-    return validateTelemetry(JSON.stringify(telemetry), topicDeviceID);
+function validate(telemetry, topicDeviceId = "sensor-001") {
+    return validateTelemetry(JSON.stringify(telemetry), topicDeviceId);
 
 }
 
@@ -53,7 +53,7 @@ assert.equal(result.valid, true);
 //malformed JSON
 test("Rejects malformed JSON",  () => {
     const result = validateTelemetry(
-        '{"deviceID": "sensor-001",',
+        '{"deviceId": "sensor-001",',
         "sensor-001"
     );
 
@@ -85,14 +85,13 @@ test("Rejects invalid device IDs", () => {
         123
     ];
 
-    for (const deviceID of invalidIDs) {
+    for (const deviceId of invalidIDs) {
         const result = validate(
-            createValidTelemetry({ deviceID })
+            createValidTelemetry({ deviceId })
         );
 
         assert.equal(result.valid, false);
-        assert.ok(result.errors.includes("Invalid or missing deviceID"));
-
+        assert.ok(result.errors.includes("Invalid or missing deviceId"));
     }
 
 });
@@ -100,7 +99,7 @@ test("Rejects invalid device IDs", () => {
 //device ID and topic mismatch
 test("Rejects device ID mismatch", () => {
     const telemetry = createValidTelemetry({
-        deviceID: "sensor-999"
+        deviceId: "sensor-999"
     });
 
     const result = validate(

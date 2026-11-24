@@ -7,7 +7,7 @@ test("Telemetry contains required fields", () => {
     const genTelemetry = createTelemetryGen();
     const telemetry = genTelemetry("sensor-001");
 
-    assert.equal(telemetry.deviceID, "sensor-001");
+    assert.equal(telemetry.deviceId, "sensor-001");
     assert.ok(telemetry.timestamp);
     assert.ok(telemetry.metrics);
 
@@ -63,16 +63,16 @@ test("Generator rejects invalid device IDs", () => {
 
   assert.throws(
     () => genTelemetry(undefined),
-    /deviceID/
+    /deviceId/
   );
 
   assert.throws(
     () => genTelemetry(""),
-    /deviceID/
+    /deviceId/
   );
 
   assert.throws(
     () => genTelemetry("   "),
-    /deviceID/
+    /deviceId/
   );
 });

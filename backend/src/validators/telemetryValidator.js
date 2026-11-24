@@ -43,7 +43,7 @@ return (
 }
 
 //function to validate telemetry data
-export function validateTelemetry(rawPayload, topicDeviceID) {
+export function validateTelemetry(rawPayload, topicDeviceId) {
     let telemetry;
 
     //parse json
@@ -68,13 +68,13 @@ export function validateTelemetry(rawPayload, topicDeviceID) {
 
     //validate device ID
     if (
-        typeof telemetry.deviceID !== "string" ||
-        !/^[a-zA-Z0-9_-]+$/.test(telemetry.deviceID)
+        typeof telemetry.deviceId !== "string" ||
+        !/^[a-zA-Z0-9_-]+$/.test(telemetry.deviceId)
     ) {
-        errors.push("Invalid or missing deviceID");
+        errors.push("Invalid or missing deviceId");
     } else if (
-        topicDeviceID !== undefined &&
-        telemetry.deviceID !== topicDeviceID
+        topicDeviceId !== undefined &&
+        telemetry.deviceId !== topicDeviceId
     ) {
         errors.push("Device ID does not match MQTT topic");
     }

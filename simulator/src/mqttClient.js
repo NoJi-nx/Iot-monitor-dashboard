@@ -4,12 +4,12 @@ import mqtt from "mqtt";
 export function createMQTTClient(
   brokerUrl,
   clientID,
-  deviceID,
+  deviceId,
   statusTopic
 ) {
   //message to be sent when the client disconnects
   const willPayload = JSON.stringify({
-    deviceID,
+    deviceId,
     status: "OFFLINE"
   });
 
@@ -83,7 +83,7 @@ export function publishTelemetry(client, topic, telemetry) {
 export function publishStatus(
   client,
   topic,
-  deviceID,
+  deviceId,
   status,
   callback = () => {}
 ) {
@@ -93,7 +93,7 @@ export function publishStatus(
   }
 
   const payload = JSON.stringify({
-    deviceID,
+    deviceId,
     status
   });
 

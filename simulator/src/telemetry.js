@@ -19,10 +19,10 @@ export function createTelemetryGen() {
     let humidity = 47.0;
     let pressure = 1013.1;
 
-    return function genTelemetry(deviceID) {
-        //validate deviceID
-        if (typeof deviceID !== "string" || deviceID.trim() === "") {
-            throw new Error("deviceID must be a non-empty string");
+    return function genTelemetry(deviceId) {
+        //validate deviceId
+        if (typeof deviceId !== "string" || deviceId.trim() === "") {
+            throw new Error("deviceId must be a non-empty string");
         }
     //change the measurements / placeholder data
     temperature = clamp(
@@ -45,7 +45,7 @@ export function createTelemetryGen() {
 
     //return telemetry data
     return {
-        deviceID,
+        deviceId,
         timestamp: new Date().toISOString(),
         metrics: {
             temperature:round(temperature),

@@ -1,6 +1,7 @@
 import mqtt from "mqtt";
 
 import {validateTelemetry} from "../validators/telemetryValidator.js";
+import {saveTelemetry} from "../services/telemetryService.js";
 
 export function startMQTTSubscriber() {
   //read env config
@@ -56,13 +57,12 @@ export function startMQTTSubscriber() {
 );
 
   //handle incoming messages
-  client.on("message", (topic, message) => {
+  client.on("message", async (topic, message) => {
+    try {
     const payload = message.toString();
-
     const parts = topic.split("/");
 
     //validate MQTT topic structure
-
     if (
       parts.length !== 4 ||
       parts[0] !== "iot" ||
@@ -73,16 +73,16 @@ export function startMQTTSubscriber() {
       return;
     }
 
-    const deviceID = parts[2];
+    const deviceId = parts[2];
     const messageType = parts[3];
 
     //handle telemetry messages
     if (messageType === "telemetry") {
-        const result = validateTelemetry(payload, deviceID);
+        const result = validateTelemetry(payload, deviceId);
 
         //reject invalid telemetry
         if (!result.valid) {
-            console.warn(`[TELEMETRY] Rejected invalid data from ${deviceID}`);
+            console.warn(`[TELEMETRY] Rejected invalid data from ${deviceId}`);
   
 
         for (const error of result.errors) {
@@ -91,32 +91,49 @@ export function startMQTTSubscriber() {
 
         return;
     }
-  
-  
-  //accept valid telemetry
-  console.log(`[TELEMETRY] Accepted data from ${deviceID}`);
 
-  console.log(JSON.stringify(result.data, null, 2));
+    //store valid telemetry
+    const saved = await saveTelemetry(result.data);
+    
+      console.log(
+        `[DATABASE] Saved telemetry from ${saved.deviceId}`
+      );
 
-  //here stores validated telemetry in PostgreSQL for later use
-  return;
-}
+      console.log(
+        `[DATABASE] Inserted: ${saved.measurementsInserted}`
+      );
 
-//handle status messages
- if (messageType === "status") {
-    console.log(`[STATUS] Device: ${deviceID}`);
-    console.log(payload);
-    return;
+      console.log(
+        `[DATABASE] Duplicates skipped: ${saved.duplicatesSkipped}`
+      );
+
+      return;
+    }
+
+    //handle status messages
+    if (messageType === "status") {
+      console.log(`[STATUS] Device: ${deviceId}`);
+      console.log(payload);
+      return;
+    }
+
+    //handle unknown messages
+    console.warn(
+      "[MQTT] Unknown message type:",
+      messageType
+    );
+
+} catch (error) {
+    // prevent asynchronous database errors from crashing the MQTT subscriber
+    console.error(
+      "[MQTT] Message processing failed:",
+      error.message
+    );
   }
-
-  //handle unknown messages
-  console.warn("[MQTT] Unknown message type:", messageType);
 });
 
 
-
   //connection events
-
   //reconnect
   client.on("reconnect", () => {
     console.log("[MQTT] Attempting reconnection...");
